@@ -1,21 +1,29 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.Extensions.DependencyInjection;
+using SignalRApp;
 
-namespace SignalRApp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSignalR(hubOptions =>
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+    hubOptions.EnableDetailedErrors = true;
+    hubOptions.KeepAliveInterval = System.TimeSpan.FromMinutes(1);
+});
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
-}
+var app = builder.Build();
 
+app.UseDeveloperExceptionPage();
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.UseRouting();
+
+app.MapHub<ChatHub>("/chat", options =>
+{
+    options.ApplicationMaxBufferSize = 64;
+    options.TransportMaxBufferSize = 64;
+    options.LongPolling.PollTimeout = System.TimeSpan.FromMinutes(1);
+    options.Transports = HttpTransportType.LongPolling | HttpTransportType.WebSockets;
+});
+
+app.Run();

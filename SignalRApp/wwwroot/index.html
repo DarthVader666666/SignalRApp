@@ -2,36 +2,25 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>SignalR Chat - Vadim Rumyancev</title>
+    <title>SignalR Chat</title>
 </head>
 <body>
-    <div id="loginBlock">
-        Log in:<br />
-        <input id="userName" type="text" />
-        <input id="loginBtn" type="button" value="Enter" />
-    </div><br />
-
-    <div id="header"></div><br />
-
     <div id="inputForm">
         <input type="text" id="message" />
         <input type="button" id="sendBtn" value="Send" />
     </div>
     <div id="chatroom"></div>
+
     <script src="js/signalr/dist/browser/signalr.min.js"></script>
     <script>
         const hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/chat", { transport: signalR.HttpTransportType.WebSockets })
-            .configureLogging(signalR.LogLevel.Information)
+            .withUrl("/chat")
             .build();
 
-        hubConnection.serverTimeoutMilliseconds = 1000 * 60 * 10;
-
-        let userName = '';
-        hubConnection.on('Send', function (message, userName) {
+        hubConnection.on('Receive', function (message, connectionId) {
 
             let userNameElem = document.createElement("b");
-            userNameElem.appendChild(document.createTextNode(userName + ': '));
+            userNameElem.appendChild(document.createTextNode(connectionId + ": "));
 
             let elem = document.createElement("p");
             elem.appendChild(userNameElem);
@@ -39,17 +28,21 @@
 
             var firstElem = document.getElementById("chatroom").firstChild;
             document.getElementById("chatroom").insertBefore(elem, firstElem);
-
         });
 
-        document.getElementById("loginBtn").addEventListener("click", function (e) {
-            userName = document.getElementById("userName").value;
-            document.getElementById("header").innerHTML = '<h3>Welcome ' + userName + '</h3>';
+        hubConnection.on('Notify', function (message) {
+
+            let notifyElem = document.createElement("b");
+            notifyElem.appendChild(document.createTextNode(message));
+            let elem = document.createElement("p");
+            elem.appendChild(notifyElem);
+            var firstElem = document.getElementById("chatroom").firstChild;
+            document.getElementById("chatroom").insertBefore(elem, firstElem);
         });
 
         document.getElementById("sendBtn").addEventListener("click", function (e) {
             let message = document.getElementById("message").value;
-            hubConnection.invoke("Send", message, userName);
+            hubConnection.invoke('Send', message);
         });
 
         hubConnection.start();
