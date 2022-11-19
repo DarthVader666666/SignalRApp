@@ -6,10 +6,11 @@
 </head>
 <body>
     <div id="inputForm">
-        <input type="text" id="message" />
-        <input type="button" id="sendBtn" value="Send" />
+        <input type="text" id="product" />
+        <input type="button" id="sendBtn" value="Add" />
     </div>
-    <div id="chatroom"></div>
+    <div id="status"></div>
+    <div id="info"></div>
 
     <script src="js/signalr/dist/browser/signalr.min.js"></script>
     <script>
@@ -17,32 +18,23 @@
             .withUrl("/chat")
             .build();
 
-        hubConnection.on('Receive', function (message, connectionId) {
-
-            let userNameElem = document.createElement("b");
-            userNameElem.appendChild(document.createTextNode(connectionId + ": "));
+        hubConnection.on('Receive', function (message) {
 
             let elem = document.createElement("p");
-            elem.appendChild(userNameElem);
             elem.appendChild(document.createTextNode(message));
 
-            var firstElem = document.getElementById("chatroom").firstChild;
-            document.getElementById("chatroom").insertBefore(elem, firstElem);
+            var firstElem = document.getElementById("info").firstChild;
+            document.getElementById("info").insertBefore(elem, firstElem);
+
         });
-
         hubConnection.on('Notify', function (message) {
-
-            let notifyElem = document.createElement("b");
-            notifyElem.appendChild(document.createTextNode(message));
-            let elem = document.createElement("p");
-            elem.appendChild(notifyElem);
-            var firstElem = document.getElementById("chatroom").firstChild;
-            document.getElementById("chatroom").insertBefore(elem, firstElem);
+            document.getElementById("status").innerText = message;
         });
 
         document.getElementById("sendBtn").addEventListener("click", function (e) {
-            let message = document.getElementById("message").value;
-            hubConnection.invoke('Send', message);
+            let product = document.getElementById("product").value;
+            hubConnection.invoke('Send', product);
+            document.getElementById("product").value = "";
         });
 
         hubConnection.start();

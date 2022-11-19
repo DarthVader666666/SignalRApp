@@ -11,10 +11,12 @@ builder.Services.AddSignalR(hubOptions =>
     hubOptions.KeepAliveInterval = System.TimeSpan.FromMinutes(1);
 });
 
+builder.Services.AddControllersWithViews();
+
 var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
-app.UseDefaultFiles();
+//app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -25,5 +27,7 @@ app.MapHub<ChatHub>("/chat", options =>
     options.LongPolling.PollTimeout = System.TimeSpan.FromMinutes(1);
     options.Transports = HttpTransportType.LongPolling | HttpTransportType.WebSockets;
 });
+
+app.MapDefaultControllerRoute();
 
 app.Run();
