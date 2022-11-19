@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,7 +9,11 @@ namespace SignalRApp
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSignalR();
+            services.AddSignalR(hubOptions =>
+            { 
+                hubOptions.EnableDetailedErrors = true;
+                hubOptions.KeepAliveInterval = System.TimeSpan.FromMinutes(1);
+            });
         }
 
         public void Configure(IApplicationBuilder app)
@@ -21,7 +26,13 @@ namespace SignalRApp
             app.UseEndpoints(endpoints =>
             {            
                 //endpoints.Map("/", async (context) => await context.Response.WriteAsync("Hello I'm Vadim!"));
-                endpoints.MapHub<ChatHub>("/chat");
+                endpoints.MapHub<ChatHub>("/chat", options =>
+                {
+                    options.ApplicationMaxBufferSize = 64;
+                    options.TransportMaxBufferSize = 64;
+                    options.LongPolling.PollTimeout = System.TimeSpan.FromMinutes(1);
+                    options.Transports = HttpTransportType.LongPolling | HttpTransportType.WebSockets;
+                });
             });
         }
     }
