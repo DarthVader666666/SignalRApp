@@ -1,19 +1,21 @@
-using SignalRApp;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
-var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddSignalR();
-
-var app = builder.Build();
-
-app.UseDeveloperExceptionPage();
-app.UseDefaultFiles();
-app.UseRouting();
-
-app.MapGet("/", () => "Hello SignalR");
-
-app.UseEndpoints(endpoints =>
+namespace SignalRApp
 {
-    endpoints.MapHub<ChatHub>("/chat");
-});
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            CreateHostBuilder(args).Build().Run();
+        }
 
-app.Run();
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
+    }
+}
+
