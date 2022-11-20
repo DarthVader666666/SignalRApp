@@ -6,10 +6,9 @@
 </head>
 <body>
     <div id="inputForm">
-        <label>Имя</label><br />
-        <input type="text" id="name" /><br /><br />
-        <label>Возраст</label><br />
-        <input type="number" id="age" /><br /><br />
+        <input type="text" name="items" /><br /><br />
+        <input type="text" name="items" /><br /><br />
+        <input type="text" name="items" /><br /><br />
         <input type="button" id="sendBtn" value="Отправить" />
     </div>
     <div><p id="response"></p></div>
@@ -20,19 +19,25 @@
             .build();
  
         // получение сообщения от сервера
-        hubConnection.on("Receive", function (user) {
- 
-            document.getElementById("response").innerText = "Имя: " + user.name + " Возраст: " + user.age;
+        hubConnection.on("Receive", function (data) {
+             
+            document.getElementById("response").innerHTML = "";
+            for (let i = 0; i < data.length; i++) {
+                 
+                document.getElementById("response").innerHTML += "<p>" + data[i] + "</p>";
+            }
         });
  
         // отправка сообщения на сервер
         document.getElementById("sendBtn").addEventListener("click", function (e) {
-            let name = document.getElementById("name").value;
-            let age = document.getElementById("age").value;
  
-            hubConnection.invoke("Send", { "name": name, "age": parseInt(age) });
-            document.getElementById("name").value = "";
-            document.getElementById("age").value = "";
+            const itemElems = document.getElementsByName("items");
+            let items = [];
+            for (let i = 0; i < itemElems.length; i++) {
+                items.push(itemElems[i].value);
+                itemElems[i].value = "";
+            }
+            hubConnection.invoke("Send", items);
         });
  
         hubConnection.start();

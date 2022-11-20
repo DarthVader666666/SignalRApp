@@ -1,23 +1,21 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
 namespace SignalRApp
 {
+    [Authorize]
     public class ChatHub : Hub
     {
-        public async Task Send(User user)
+        public async Task Send(string message, string userName)
         {
-            user.Age += 5;
-            await this.Clients.All.SendAsync("Receive", user);
+            await Clients.Caller.SendAsync("Receive", message, userName);
         }
-    }
 
-    public class User
-    { 
-        public string Name { get; set; }    
-
-        public int Age { get; set; }
+        [Authorize(Roles = "admin")]
+        public async Task Notify(string message, string userName)
+        {
+            await Clients.All.SendAsync("Receive", message, userName);
+        }
     }
 }

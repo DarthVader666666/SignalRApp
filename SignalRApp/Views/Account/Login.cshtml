@@ -1,0 +1,24 @@
+﻿@model SignalRApp.Models.LoginModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<h2>Log in</h2>
+
+<form asp-action="Login" asp-controller="Account" method="post" asp-antiforgery="true">
+    <div class="validation" asp-validation-summary="ModelOnly"></div>
+    <div>
+    <div class="form-group">
+        <label asp-for="Email">Enter Email</label><br/>
+        <input type="text" asp-for="Email"/><br/>
+        <span asp-validation-for="Email"/><br/>
+    </div>
+    <div class="form-group">
+        <label asp-for="Password">Enter Password</label><br/>
+        <input type="text" asp-for="Password"/><br/>
+        <span asp-validation-for="Password"/><br/>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="LogIn" class="btn"/>
+    </div>
+    </div>
+</form>
+    

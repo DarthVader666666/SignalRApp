@@ -1,33 +1,43 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using SignalRApp;
+using SignalRApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSignalR(hubOptions =>
-{
-    hubOptions.EnableDetailedErrors = true;
-    hubOptions.KeepAliveInterval = System.TimeSpan.FromMinutes(1);
-});
+string connection = "Server=(localdb)\\mssqllocaldb;Database=authsignalrappdb;Trusted_Connection=True;";
+builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
+        options.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Account/Login");
+    });
+builder.Services.AddSignalR();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
 app.UseDeveloperExceptionPage();
-//app.UseDefaultFiles();
+
+app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
-app.MapHub<ChatHub>("/chat", options =>
-{
-    options.ApplicationMaxBufferSize = 64;
-    options.TransportMaxBufferSize = 64;
-    options.LongPolling.PollTimeout = System.TimeSpan.FromMinutes(1);
-    options.Transports = HttpTransportType.LongPolling | HttpTransportType.WebSockets;
-});
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapDefaultControllerRoute();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Account}/{action=Index}");
+    endpoints.MapHub<ChatHub>("/chat");
+});
 
 app.Run();
