@@ -1,43 +1,54 @@
-﻿<!DOCTYPE html>
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>SignalR Chat</title>
+    <title>Главная</title>
 </head>
 <body>
-    <div id="inputForm">
-        <input type="text" id="product" />
-        <input type="button" id="sendBtn" value="Add" />
-    </div>
-    <div id="status"></div>
-    <div id="info"></div>
+
+    <form method="post">
+        <input type="text" name="product" id="productField" />
+        <input type="submit" value="Отправить" id="submitForm" />
+    </form>
+
+    <div id="notify"></div>
 
     <script src="js/signalr/dist/browser/signalr.min.js"></script>
     <script>
         const hubConnection = new signalR.HubConnectionBuilder()
             .withUrl("/chat")
             .build();
+        let connectionId = "";
+        document.getElementById("submitForm")
+            .addEventListener("click", function (e) {
+                e.preventDefault();
 
-        hubConnection.on('Receive', function (message) {
+                const data = new FormData();
+                data.append("product", document.getElementById("productField").value);
+                data.append("connectionId", connectionId);
+
+                fetch("home/create", {
+                    method: "POST",
+                    body: data
+                })
+                    .catch(error => console.error("Error: ", error));
+            });
+        hubConnection.on("Notify", function (message) {
 
             let elem = document.createElement("p");
             elem.appendChild(document.createTextNode(message));
 
-            var firstElem = document.getElementById("info").firstChild;
-            document.getElementById("info").insertBefore(elem, firstElem);
+            document.getElementById("notify").appendChild(elem);
 
         });
-        hubConnection.on('Notify', function (message) {
-            document.getElementById("status").innerText = message;
+        hubConnection.start().then(() => {
+            console.log(hubConnection.connectionId);
+            connectionId = hubConnection.connectionId;
         });
-
-        document.getElementById("sendBtn").addEventListener("click", function (e) {
-            let product = document.getElementById("product").value;
-            hubConnection.invoke('Send', product);
-            document.getElementById("product").value = "";
-        });
-
-        hubConnection.start();
     </script>
 </body>
 </html>

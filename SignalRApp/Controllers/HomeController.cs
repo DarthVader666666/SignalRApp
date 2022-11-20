@@ -20,10 +20,10 @@ namespace SignalRApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(string product)
+        public async Task Create(string product, string connectionId)
         {
-            await this.hubContext.Clients.All.SendAsync("Notify", $"Added: {product} - {DateTime.Now.ToShortTimeString()}");
-            return this.RedirectToAction("Index");
+            await hubContext.Clients.AllExcept(connectionId).SendAsync("Notify", $"Добавлено: {product} - {DateTime.Now.ToShortTimeString()}");
+            await hubContext.Clients.Client(connectionId).SendAsync("Notify", $"Ваш товар добавлен!");
         }
     }
 }
